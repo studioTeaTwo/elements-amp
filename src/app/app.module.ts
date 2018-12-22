@@ -1,16 +1,21 @@
-import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppComponent } from './app.component';
+import { AmpDisplayComponent } from './amp-display/amp-display.component';
+import { AmpDisplayService } from './amp-display/amp-display.service';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    AmpDisplayComponent
   ],
   imports: [
-    BrowserModule
+    BrowserModule, BrowserAnimationsModule
   ],
-  providers: [],
-  bootstrap: [AppComponent]
+  providers: [AmpDisplayService],
+  bootstrap: [AppComponent],
+  entryComponents: [AmpDisplayComponent]
 })
 export class AppModule { }
