@@ -1,5 +1,11 @@
-import { ApplicationRef, ComponentFactoryResolver, Injectable, Injector } from '@angular/core';
+import {
+  ApplicationRef,
+  ComponentFactoryResolver,
+  Injectable,
+  Injector
+} from '@angular/core';
 import { NgElement, WithProperties } from '@angular/elements';
+import { HttpClient } from '@angular/common/http';
 
 import { AmpDisplayComponent } from './amp-display.component';
 
@@ -7,19 +13,30 @@ import { AmpDisplayComponent } from './amp-display.component';
   providedIn: 'root'
 })
 export class AmpDisplayService {
-  constructor(private injector: Injector,
+  private ampUrl = 'http://localhost:8080/amp';
+
+  constructor(
+    private injector: Injector,
     private applicationRef: ApplicationRef,
-    private componentFactoryResolver: ComponentFactoryResolver) {}
+    private componentFactoryResolver: ComponentFactoryResolver,
+    private http: HttpClient
+  ) {}
 
   // Previous dynamic-loading method required you to set up infrastructure
   // before adding the popup to the DOM.
-  showAsComponent(message: string) {
+  showAsComponent() {
     // Create element
     const ampDisplay = document.createElement('amp-display-component');
 
     // Create the component and wire it up with the element
-    const factory = this.componentFactoryResolver.resolveComponentFactory(AmpDisplayComponent);
-    const ampDisplayComponentRef = factory.create(this.injector, [], ampDisplay);
+    const factory = this.componentFactoryResolver.resolveComponentFactory(
+      AmpDisplayComponent
+    );
+    const ampDisplayComponentRef = factory.create(
+      this.injector,
+      [],
+      ampDisplay
+    );
 
     // Attach to the view so that the change detector knows to run
     this.applicationRef.attachView(ampDisplayComponentRef.hostView);
@@ -30,26 +47,36 @@ export class AmpDisplayService {
       this.applicationRef.detachView(ampDisplayComponentRef.hostView);
     });
 
-    // Set the message
-    ampDisplayComponentRef.instance.message = message;
-
-    // Add to the DOM
-    document.body.appendChild(ampDisplay);
+    this.getContent().subscribe(text => {
+      // Set the message
+      ampDisplayComponentRef.instance.message = text;
+      // Add to the DOM
+      document.body.appendChild(ampDisplay);
+    });
   }
 
   // This uses the new custom-element method to add the popup to the DOM.
-  showAsElement(message: string) {
+  showAsElement() {
     // Create element
-    const ampDisplayEl: NgElement & WithProperties<AmpDisplayComponent> = document.createElement('amp-display-element') as any;
+    const ampDisplayEl: NgElement &
+      WithProperties<AmpDisplayComponent> = document.createElement(
+      'amp-display-element'
+    ) as any;
 
     // Listen to the close event
-    ampDisplayEl.addEventListener('closed', () => document.body.removeChild(ampDisplayEl));
+    ampDisplayEl.addEventListener('closed', () =>
+      document.body.removeChild(ampDisplayEl)
+    );
 
-    // Set the message
-    ampDisplayEl.message = message;
-
-    // Add to the DOM
-    document.body.appendChild(ampDisplayEl);
+    this.getContent().subscribe(text => {
+      // Set the message
+      ampDisplayEl.message = text;
+      // Add to the DOM
+      document.body.appendChild(ampDisplayEl);
+    });
   }
 
+  private getContent() {
+    return this.http.get(this.ampUrl, { responseType: 'text' });
+  }
 }
